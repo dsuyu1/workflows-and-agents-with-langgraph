@@ -127,6 +127,7 @@ def classify_ticket(state: TicketTriageState) -> dict:
     # and used the state's ticket_text to give the ticket a classification
     return {"classification": classification}
 ```
-In summary, the LLM takes the text from the ticket and determines a classification for the ticket.
+In summary, the LLM takes the text from the ticket and determines a classification for the ticket. True to the nature of nodes, that is all this first function does.
+
 
 
