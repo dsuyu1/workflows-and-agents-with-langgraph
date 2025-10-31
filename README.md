@@ -106,6 +106,8 @@ class TicketTriageState:
 ```
 
 ## Nodes
+<img src="nodes.png" alt="nodes" width="500"/>
+
 In LangGraph, a **node** is a _function_ that represents a single unit of computation or a specific step in a workflow.
 
 
