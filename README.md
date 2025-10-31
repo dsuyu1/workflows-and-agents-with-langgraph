@@ -110,4 +110,23 @@ class TicketTriageState:
 
 In LangGraph, a **node** is a _function_ that represents a single unit of computation or a specific step in a workflow.
 
+```python
+CLASSIFY_PROMPT = """
+Classify this support ticket into one of the following categories:
+'Technical Issue', 'Billing Inquiry', 'General Question'.
+
+<ticket>
+{ticket_text}
+</ticket>
+""".strip()
+
+def classify_ticket(state: TicketTriageState) -> dict:
+    classification = llm.invoke(CLASSIFY_PROMPT.format(ticket_text=state.ticket_text))
+    # returns a dictionary, where "classification" is the key, and the value is what the LLM
+    # generated from the line above. It took the ticket_text from the dataclass we defined earlier,
+    # and used the state's ticket_text to give the ticket a classification
+    return {"classification": classification}
+```
+In summary, the LLM takes the text from the ticket and determines a classification for the ticket.
+
 
