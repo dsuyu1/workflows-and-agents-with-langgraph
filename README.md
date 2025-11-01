@@ -3,7 +3,7 @@ In this project, I build an agentic workflow with Ollama and LangGraph. I will u
 
 Feel free to skip forward to the end to see my final product!
 
-## 1. Introduction
+## Introduction
 I'll build two implementations of the IT support ticket system - one with workflows and the otehr with AI agents to understand the differences and use cases.
 
 The LangGraph library is focused around building workflows and AI agents.
@@ -12,7 +12,6 @@ As previously mentioned, our use case is an **intelligent support ticket triage*
 
 ### Problem Statement
 Our company is drowning in support tickets. The IT team could use some help! ⚠️
-
 
 ### Proposed Solution
 Intelligent ticket processing that:
@@ -55,7 +54,7 @@ For example, we can have a function that freezes the graph and waits for human r
 
 Human-in-the-loop takes a cool AI demo app to something you can actually use in production. With humans "in the loop," we can relax knowing that AI won't go crazy. :relieved:
 
-# 2. Implementation
+## Part 1: Agentic Workflow
 We start by importing everything we need. Most of them come from LangChain. The LangGraph imports will help us build our state graphs.
 ```python
 %pip install -Uqqq pip --progress-bar off
@@ -104,7 +103,7 @@ pipe = pipeline("text2text-generation", model="google/flan-t5-large", temperatur
 llm = HuggingFacePipeline(pipeline=pipe)
 ```
 
-## Workflow
+### Adding a dataclass
 Our intelligent system workflow starts by defining a **state**. We'll use a `dataclass` to define our state. In LangChain, a `dataclass` is utilized as a method for **defining structure of data**, particularly within the context of managing state in LangGraph. 
 
 ```python
@@ -118,7 +117,7 @@ class TicketTriageState:
   revision_count: int = 0 # sets revision_count to 0 to start
 ```
 
-## A quick explanation of nodes in LangGraph
+### A quick explanation of nodes in LangGraph
 <img src="nodes_graphic.png" alt="nodes" width="500"/>
 
 In LangGraph, a **node** is a _function_ that represents a single unit of computation or a specific step in a workflow.
@@ -338,10 +337,12 @@ It's the moment of truth!~ 🚀 Let's see what our model came up with.
 ```py
 print(final_state["draft_response"])
 ```
-The respone from the model was:
+The response from the model was:
 
 > For login issues, tell the user to try resetting their password via the 'Forgot Password' link. The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cache. Billing inquiries should be escalated to the billing department by creating a ticket in Salesforce.
 
 And with that, we've successfully created an agentic workflow with LangGraph! ☄️
+
+## Part 2: AI Agents
 
 
