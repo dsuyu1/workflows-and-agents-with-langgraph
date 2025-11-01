@@ -284,7 +284,7 @@ app = graph.compile()
 ```python
 display(Image(app.get_graph().draw_mermaid_png()))
 ```
-
+<img src="graph2.png" alt="nodes" width="300"/>
 
 
 
