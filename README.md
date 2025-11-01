@@ -105,11 +105,12 @@ class TicketTriageState:
   revision_count: int = 0 # sets revision_count to 0 to start
 ```
 
-## Nodes
+## A quick explanation of nodes in LangGraph
 <img src="nodes_graphic.png" alt="nodes" width="500"/>
 
 In LangGraph, a **node** is a _function_ that represents a single unit of computation or a specific step in a workflow.
 
+### Classification of the prompt
 ```python
 CLASSIFY_PROMPT = """
 Classify this support ticket into one of the following categories:
@@ -129,6 +130,7 @@ def classify_ticket(state: TicketTriageState) -> dict:
 ```
 In summary, the LLM takes the text from the ticket and determines a classification for the ticket. True to the nature of nodes, that is all this first function does.
 
+### Contacting the knowledge base
 Next we'll simulate a knowledge base for the LLM to pull information from.
 
 ```python
@@ -150,6 +152,7 @@ def retrieve_knowledge(state: TicketTriageState) -> dict:
 ```
 This is just a sample knowledge base for now. Afterwards, I plan on making this an actual database. For now, let's just define all the functions and make updates later.
 
+### Drafting the response
 Next, we'll draft the model's response.
 
 ```python
@@ -171,10 +174,116 @@ def draft_response(state: TicketTriageState) -> dict:
   draft = llm.invoke(prompt)
   return {"draft_response": draft}
 ```
-Afterwards, the model will ask us if the draft it created fully addresses the ticket. If it doesn't we can reply with FAIL and it will revise the draft once more.
+
+### Response evaluation
+Based on the context the model generated, it will draft its first response to the prompt. Next, let's create the evaluation node.
+
+```python
+EVALUATE_PROMPT = """
+Does this draft
+<draft>
+{draft_response}
+</draft>
+
+fully address the ticket
+
+<ticket>
+{ticket_text}
+</ticket>
+
+If not, provide feedback.
+Respond with 'PASS' or 'FAIL: [feedback]'."
+""".strip()
+
+def evaluate_draft(state: TicketTriageState) -> dict:
+  evaluation_prompt = EVALUATE_PROMPT.format(
+    draft_response=state.draft_response,
+    ticket_text=state.ticket_text,
+  )
+  evaluation_result = llm.invoke(evaluation_prompt)
+  revision_count = state.revision_count + 1
+  return {"evaluation_feedback": evaluation_result, "revision_count": revision_count}
+```
+This node sets up the mechanism for the language model to review the drafted response and determine if it's sufficient, providing feedback if necessary, and tracking the number of evaluations.
+
+### Revising the response draft
+```python
+REVISE_PROMPT = """
+Revise this draft:
+<draft>
+{draft_response}
+</draft>
+
+based on the following feedback:
+
+<feedback>
+{evaluation_feedback}
+</feedback>
+""".strip()
+
+def revise_response(state: TicketTriageState) -> dict:
+  revise_prompt = REVISE_PROMPT.format(
+    draft_response=state.draft_response,
+    evaluation_feedback=state.evaluation_feedback,
+  )
+  return {"draft_response": llm.invoke(revise_prompt)}
+```
+`REVISE_PROMPT` is a string that provides instructions to the language model on how to revise the draft. It includes the existing draft ({`draft_response`}) and the feedback received from the evaluation step ({evaluation_feedback}). 
+
+`revise_prompt` is sent to the model, and the model will use the draft and feedback to generate a revised version of the response. Basically, this node enables the language model to take the feedback from the evaluation step and use it to improve the initial draft of the response.
+
+### If "FAIL," revise
+```python
+def should_revise(state: TicketTriageState) -> str:
+    feedback = state.evaluation_feedback
+    revision_count = state.revision_count
+
+    if "FAIL" in feedback and revision_count < 3:
+        return "revise"
+    else:
+        return "end"
+```
+Here is where we implement the logic we defined previously. 
+
+- If the `evaluation_feedback` contains the word "FAIL" AND the `revision_count` is less than 3, the function returns the string `"revise"`. This signals to the LangGraph that the workflow should go to the "revise" node to attempt to improve the draft.
+- If the `evaluation_feedback` does not contain "FAIL" OR the `revision_count` is 3 or more, the function returns the string `"end"`. This signals to the LangGraph that the workflow should stop at this point, either because the draft passed the evaluation or because it has been revised too many times.
+
+### Generating our graph
+```python
+graph = StateGraph(TicketTriageState)
+
+# Nodes
+graph.add_node("classify", classify_ticket)
+graph.add_node("retrieve", retrieve_knowledge)
+graph.add_node("draft", draft_response)
+graph.add_node("evaluate", evaluate_draft)
+graph.add_node("revise", revise_response)
 
 
+# Edges
+graph.add_edge("classify", "retrieve")
+graph.add_edge("retrieve", "draft")
+graph.add_edge("draft", "evaluate")
 
+graph.add_edge("revise", "evaluate")
+
+graph.add_conditional_edges(
+    "evaluate",
+    should_revise,
+    {
+        "revise": "revise",
+        "end": END,
+    },
+)
+
+graph.set_entry_point("classify")
+app = graph.compile()
+```
+
+### Displaying the graph
+```python
+display(Image(app.get_graph().draw_mermaid_png()))
+```
 
 
 
