@@ -1,4 +1,4 @@
-![logo](langgraphblue.png)
+![logo](lang_logo.png)
 # Workflows and AI Agents with LangGraph
 In this project, I build an agentic workflow with Ollama and LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov as a guide. However, my implementation is unique and is working as of today's date (11/1/2025).
 
