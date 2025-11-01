@@ -1,5 +1,5 @@
 # Workflows and AI Agents with LangGraph
-In this project, I build an agentic workflow with Ollama and LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov to get started. After the system is complete, I will add my own additions to make the system unique. 
+In this project, I build an agentic workflow with Ollama and LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov as a guide. However, my implementation is unique and is working as of today's date (11/1/2025).
 
 Feel free to skip forward to the end to see my final product!
 
@@ -58,17 +58,27 @@ Human-in-the-loop takes a cool AI demo app to something you can actually use in 
 # 2. Implementation
 We start by importing everything we need. Most of them come from LangChain. The LangGraph imports will help us build our state graphs.
 ```python
+%pip install -Uqqq pip --progress-bar off
+%pip install -Uqqq langchain --progress-bar off
+%pip install -Uqqq langchain-openai --progress-bar off
+%pip install -Uqqq langchain-google-genai --progress-bar off
+%pip install -Uqqq langchain-ollama --progress-bar off
+%pip install -Uqqq langchain-community --progress-bar off
+%pip install -Uqqq pypdf --progress-bar off
+%pip install -Uqqq fastembed --progress-bar off
+%pip install -Uqqq langgraph --progress-bar off
+%pip install -Uqqq langchain-core --progress-bar offs
+
 # Used to easily create classes for storing data.
 from dataclasses import dataclass, field
 # Provides type hints for better code readability and maintainability.
 from typing import Annotated, List, TypedDict
-
 # Used to display images and other rich output in IPython/Colab.
 from IPython.display import Image, display
 # Initializes a chat model for language model interactions.
 from langchain.chat_models import init_chat_model
 # Provides fast and efficient embeddings for text.
-from langchain_community.embeddings import FastEmbedEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 # Represents a document object, often used in retrieval systems.
 from langchain_core.documents import Document
 # Represents different types of messages in a conversation.
@@ -83,13 +93,16 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langgraph.graph import END, StateGraph
 # Function to add messages to the state in LangGraph.
 from langgraph.graph.message import add_messages
-# A pre-built node in LangGraph for executing tools.
-from langgraph.prebuilt import ToolNode
 ```
-I'll be using `gpt-oss`'s latest model provided by Ollama. According to Ollama, `gpt-oss` is
-> "OpenAI’s open-weight models designed for powerful **reasoning**,** agentic tasks**, and versatile developer use cases."
+Initially, I was going to use `gpt-oss`'s latest model provided by Ollama. However, I was having trouble with my API key and whatnot, so I decided to take the easiest route and just have a Hugging Face model saved locally in my Google Colab environment.
 
-Seem's like this model fits our use case pretty well. Using Ollama is great because I have it running locally on my machine.
+```py
+from langchain_community.llms import HuggingFacePipeline
+from transformers import pipeline
+
+pipe = pipeline("text2text-generation", model="google/flan-t5-large", temperature=0.7, max_length=512)
+llm = HuggingFacePipeline(pipeline=pipe)
+```
 
 ## Workflow
 Our intelligent system workflow starts by defining a **state**. We'll use a `dataclass` to define our state. In LangChain, a `dataclass` is utilized as a method for **defining structure of data**, particularly within the context of managing state in LangGraph. 
@@ -100,8 +113,8 @@ class TicketTriageState:
   ticket_text: str
   classification: str= "" #
   retrieved_docs: List[Document] = field(default_factory=lambda: []) # subject to change
-  draft_response: str = "" 
-  evaluation_feedback: str = "" 
+  draft_response: str = ""
+  evaluation_feedback: str = ""
   revision_count: int = 0 # sets revision_count to 0 to start
 ```
 
@@ -122,11 +135,11 @@ Classify this support ticket into one of the following categories:
 """.strip()
 
 def classify_ticket(state: TicketTriageState) -> dict:
-    classification = llm.invoke(CLASSIFY_PROMPT.format(ticket_text=state.ticket_text))
-    # returns a dictionary, where "classification" is the key, and the value is what the LLM
-    # generated from the line above. It took the ticket_text from the dataclass we defined earlier,
-    # and used the state's ticket_text to give the ticket a classification
-    return {"classification": classification}
+  classification = llm.invoke(CLASSIFY_PROMPT.format(ticket_text=state.ticket_text))
+  # returns a dictionary, where "classification" is the key, and the value is what the LLM
+  # generated from the line above. It took the ticket_text from the dataclass we defined earlier,
+  # and used the state's ticket_text to give the ticket a classification
+  return {"classification": classification}
 ```
 In summary, the LLM takes the text from the ticket and determines a classification for the ticket. True to the nature of nodes, that is all this first function does.
 
@@ -134,21 +147,22 @@ In summary, the LLM takes the text from the ticket and determines a classificati
 Next we'll simulate a knowledge base for the LLM to pull information from.
 
 ```python
-# simulates an internal knowledge base
+from langchain_community.embeddings import FastEmbedEmbeddings
+
 knowledge_base = [
     "For login issues, tell the user to try resetting their password via the 'Forgot Password' link.",
     "Billing inquiries should be escalated to the billing department by creating a ticket in Salesforce.",
-    "The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cahce.",
-    ]
+    "The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cache.",
+]
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-embeddings = FastEmbedEmbeddings()
 vector_store = InMemoryVectorStore.from_texts(knowledge_base, embeddings)
 retriever = vector_store.as_retriever()
 
-# this node retrieves knowledge duh
+
 def retrieve_knowledge(state: TicketTriageState) -> dict:
-  retrieved_docs = retriever.invoke(state.ticket_text)
-  return {"retrieved_docs": retrieved_docs}
+    retrieved_docs = retriever.invoke(state.ticket_text)
+    return {"retrieved_docs": retrieved_docs}
 ```
 This is just a sample knowledge base for now. Afterwards, I plan on making this an actual database. For now, let's just define all the functions and make updates later.
 
@@ -169,7 +183,7 @@ Draft a response for this ticket:
 """.strip()
 
 def draft_response(state: TicketTriageState) -> dict:
-  context = "\n".join([doc.page_context for doc in state.retrieved_docs])
+  context = "\n".join([doc.page_content for doc in state.retrieved_docs])
   prompt = DRAFT_PROMPT.format(context=context, ticket=state.ticket_text)
   draft = llm.invoke(prompt)
   return {"draft_response": draft}
@@ -252,7 +266,7 @@ Here is where we implement the logic we defined previously.
 ```python
 graph = StateGraph(TicketTriageState)
 
-# Nodes
+# all of the nodes we just defined
 graph.add_node("classify", classify_ticket)
 graph.add_node("retrieve", retrieve_knowledge)
 graph.add_node("draft", draft_response)
@@ -260,14 +274,15 @@ graph.add_node("evaluate", evaluate_draft)
 graph.add_node("revise", revise_response)
 
 
-# Edges
+# we connect all the nodes with edges
 graph.add_edge("classify", "retrieve")
 graph.add_edge("retrieve", "draft")
 graph.add_edge("draft", "evaluate")
 
 graph.add_edge("revise", "evaluate")
 
-graph.add_conditional_edges(
+graph.add_conditional_edges( # if we need to revise the draft, we will go back to revise node
+                            # otherwise, we end execution
     "evaluate",
     should_revise,
     {
@@ -276,15 +291,57 @@ graph.add_conditional_edges(
     },
 )
 
-graph.set_entry_point("classify")
-app = graph.compile()
+graph.set_entry_point("classify") # all support tickets start with classify node
+app = graph.compile() # puts our graph together
 ```
 
 ### Displaying the graph
 ```python
-display(Image(app.get_graph().draw_mermaid_png()))
+display(Image(app.get_graph().draw_mermaid_png())) # our compiled graph
 ```
 <img src="graph2.png" alt="nodes" width="300"/>
 
+### Running the workflow
+```py
+# Test the system
+initial_state = { 
+    "ticket_text": "My login is broken, please help!",
+    "retrieved_docs": [],
+    "classification": "", # Changed from category to classification
+    "draft_response": "" # Changed from response to draft_response
+}
+
+final_state = app.invoke(initial_state) 
+
+# prints our final state stuff
+print("=== TICKET TRIAGE RESULTS ===")
+print(f"Original Ticket: {final_state['ticket_text']}")
+print(f"Classification: {final_state['classification']}") 
+# print(f"Priority: {final_state['priority']}") # maybe add Priority later
+print(f"\nResponse:\n{final_state['draft_response']}")
+```
+### Printing the final classification
+```py
+print(final_state["classification"])
+```
+The model successfully identifies the issue as a `Technical Issue`.
+
+### Printing the revision count
+```py
+print(final_state["revision_count"])
+```
+Only one revision was applied to the initial draft. (`revision_count` == 1).
+
+### Print the draft of the response
+It's the moment of truth!~ 🚀 Let's see what our model came up with.
+
+```py
+print(final_state["draft_response"])
+```
+The respone from the model was:
+
+> For login issues, tell the user to try resetting their password via the 'Forgot Password' link. The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cache. Billing inquiries should be escalated to the billing department by creating a ticket in Salesforce.
+
+And with that, we've successfully created an agentic workflow with LangGraph! ☄️
 
 
