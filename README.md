@@ -129,5 +129,53 @@ def classify_ticket(state: TicketTriageState) -> dict:
 ```
 In summary, the LLM takes the text from the ticket and determines a classification for the ticket. True to the nature of nodes, that is all this first function does.
 
+Next we'll simulate a knowledge base for the LLM to pull information from.
+
+```python
+# simulates an internal knowledge base
+knowledge_base = [
+    "For login issues, tell the user to try resetting their password via the 'Forgot Password' link.",
+    "Billing inquiries should be escalated to the billing department by creating a ticket in Salesforce.",
+    "The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cahce.",
+    ]
+
+embeddings = FastEmbedEmbeddings()
+vector_store = InMemoryVectorStore.from_texts(knowledge_base, embeddings)
+retriever = vector_store.as_retriever()
+
+# this node retrieves knowledge duh
+def retrieve_knowledge(state: TicketTriageState) -> dict:
+  retrieved_docs = retriever.invoke(state.ticket_text)
+  return {"retrieved_docs": retrieved_docs}
+```
+This is just a sample knowledge base for now. Afterwards, I plan on making this an actual database. For now, let's just define all the functions and make updates later.
+
+Next, we'll draft the model's response.
+
+```python
+DRAFT_PROMPT = """
+Based on this context:
+<context>
+{context}
+</context>
+
+Draft a response for this ticket:
+<ticket>
+{ticket}
+</ticket>
+""".strip()
+
+def draft_response(state: TicketTriageState) -> dict:
+  context = "\n".join([doc.page_context for doc in state.retrieved_docs])
+  prompt = DRAFT_PROMPT.format(context=context, ticket=state.ticket_text)
+  draft = llm.invoke(prompt)
+  return {"draft_response": draft}
+```
+Afterwards, the model will ask us if the draft it created fully addresses the ticket. If it doesn't we can reply with FAIL and it will revise the draft once more.
+
+
+
+
+
 
 
