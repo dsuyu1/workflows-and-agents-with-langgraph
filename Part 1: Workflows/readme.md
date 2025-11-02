@@ -1,8 +1,6 @@
 # Introduction to Workflows with LangGraph
 
-In this project, I build a workflow using LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov as a guide. However, my implementation is unique and is working as of today's date (11/1/2025).
-
-Feel free to skip forward to the end to see my final product!
+In this project, I build a workflow using LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov as a guide. However, my implementation is unique and is working as of today's date (11/1/2025). You can read the full documentation of the tutorial [here](https://www.mlexpert.io/academy/v1/ai-agents/langgraph-getting-started). 
 
 ## Introduction
 
@@ -16,6 +14,13 @@ I'll build two implementations of the IT support ticket system - one with workfl
 The LangGraph library is focused around building workflows and AI agents.
 
 As previously mentioned, our use case is an **intelligent support ticket triage**.
+
+### Goals
+- Master the three core LangGraph building blocks: State, Nodes, and Edges
+- Build a complete support ticket system using the structured workflow pattern
+- Rebuild the same system as an autonomous agent to see the key differences
+- Implement automated quality control with evaluator-feedback loops
+- Add human oversight checkpoints to prevent costly AI mistakes
 
 ### Problem Statement
 
