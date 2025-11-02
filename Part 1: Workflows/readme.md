@@ -128,9 +128,9 @@ pipe = pipeline("text2text-generation", model="google/flan-t5-large", temperatur
 llm = HuggingFacePipeline(pipeline=pipe)
 ```
 
-### Adding a dataclass
+### Defining the state
 
-Our intelligent system workflow starts by defining a **state**. We'll use a `dataclass` to define our state. In LangChain, a `dataclass` is utilized as a method for **defining the structure of data**, particularly within the context of managing state in LangGraph.
+Think of the state as your system's memory - everything important gets stored here as it flows through your workflow. We'll use a `dataclass` to define our state. In LangChain, a `dataclass` is utilized as a method for **defining the structure of data**, particularly within the context of managing state in LangGraph.
 
 ```python
 @dataclass # defines structure of our LangChain state
@@ -142,6 +142,15 @@ class TicketTriageState:
   evaluation_feedback: str = ""
   revision_count: int = 0
 ```
+
+Here's what we're tracking:
+
+- `ticket_text` - The original problem from the customer
+- `classification` - What type of issue this is (technical, billing, etc.)
+- `retrieved_docs` - Relevant solutions we found in our knowledge base
+- `draft_response` - Our current attempt at a helpful response
+- `evaluation_feedback` - How good our draft is (and how to improve it)
+- `revision_count` - How many times we've tried to improve the response
 
 ### A quick explanation of nodes in LangGraph
 
