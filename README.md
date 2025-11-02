@@ -5,6 +5,11 @@ In this project, I build an agentic workflow with Ollama and LangGraph. I will u
 Feel free to skip forward to the end to see my final product!
 
 ## Introduction
+According to [LangChain's official documentation](https://docs.langchain.com/oss/python/langgraph/workflows-agents):
+
+> **Workflows** have predetermined code paths and are designed to operate in a certain order.
+> **Agents** are dynamic and define their own processes and tool usage.
+
 I'll build two implementations of the IT support ticket system - one with workflows and the otehr with AI agents to understand the differences and use cases.
 
 The LangGraph library is focused around building workflows and AI agents.
@@ -342,8 +347,5 @@ The response from the model was:
 
 > For login issues, tell the user to try resetting their password via the 'Forgot Password' link. The app is known to crash on startup if the user's cache is corrupted. The standard fix is to clear the application cache. Billing inquiries should be escalated to the billing department by creating a ticket in Salesforce.
 
-And with that, we've successfully created an agentic workflow with LangGraph! ☄️
-
-## Part 2: AI Agents
-
+There are some issues I want to address, especially regarding the response from the model, but for now, let's call it a win and move on! ⭐
 
