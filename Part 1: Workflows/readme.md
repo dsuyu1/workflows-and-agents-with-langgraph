@@ -1,5 +1,5 @@
 # Introduction to Workflows with LangGraph
-
+![workflow](agenticworkflow.png)
 In this project, I build a workflow using LangGraph. I will use [this](https://youtu.be/mRx12jkugTE?si=48OSoke3ebptm8gn) tutorial from Venelin Valkov as a guide. However, my implementation is unique and is working as of today's date (11/1/2025). You can read the full documentation of the tutorial [here](https://www.mlexpert.io/academy/v1/ai-agents/langgraph-getting-started). 
 
 ## Introduction
