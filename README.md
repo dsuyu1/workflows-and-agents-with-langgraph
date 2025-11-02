@@ -1,6 +1,10 @@
 # LangGraph & LangChain Project Series  
 
 ## Overview
+According to [LangChain's official documentation](https://docs.langchain.com/oss/python/langgraph/workflows-agents):
+
+> **Workflows** have predetermined code paths and are designed to operate in a certain order.
+> **Agents** are dynamic and define their own processes and tool usage.
 
 This repository is part of my ongoing series of projects designed to build **familiarity with LangGraph** and **LangChain**—two powerful frameworks for developing **AI-driven systems** that combine reasoning, memory, and structured task orchestration.  
 
