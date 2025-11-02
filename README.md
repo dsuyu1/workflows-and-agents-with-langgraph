@@ -60,7 +60,7 @@ For example, we can have a function that freezes the graph and waits for human r
 
 Human-in-the-loop takes a cool AI demo app to something you can actually use in production. With humans "in the loop," we can relax knowing that AI won't go crazy. :relieved:
 
-## Part 1: Agentic Workflow
+## Part 1: Workflow
 We start by importing everything we need. Most of them come from LangChain. The LangGraph imports will help us build our state graphs.
 ```python
 %pip install -Uqqq pip --progress-bar off
