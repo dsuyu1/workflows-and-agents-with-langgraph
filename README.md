@@ -30,5 +30,5 @@ Each part of this series focuses on a specific aspect of intelligent agent desig
 
 | Part | Title | Description | Link |
 |------|--------|--------------|------|
-| 1 | **Workflows** | Implements a LangGraph-based **IT support ticket system** using a structured workflow. The system classifies support tickets, retrieves knowledge base entries, drafts responses, and self-evaluates them. | [Part 1: Workflows](Workflows/readme.md) |
+| 1 | **Workflows** | Implements a LangGraph-based **IT support ticket system** using a structured workflow. The system classifies support tickets, retrieves knowledge base entries, drafts responses, and self-evaluates them. | [Part 1: Workflows]([Workflows/readme.md](https://github.com/dsuyu1/workflows-and-agents-with-langgraph/tree/119a820aa378a5af64b4b607d75dd58e2277a3ad/Part%201%3A%20Workflows)) |
 | 2 | **Agents** *(coming soon)* | Expands on the previous system by introducing **autonomous agents** capable of dynamic reasoning, task delegation, and self-correction. | _In progress_ |
