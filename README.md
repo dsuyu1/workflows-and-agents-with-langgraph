@@ -1,6 +1,6 @@
 # LangGraph & LangChain Project Series  
 
-## Overview
+## 🔍 Overview
 According to [LangChain's official documentation](https://docs.langchain.com/oss/python/langgraph/workflows-agents):
 
 > **Workflows** have predetermined code paths and are designed to operate in a certain order.
