@@ -34,3 +34,4 @@ That's what we did with the nodes and edges. We had a series of "well-defined ta
 While Part 1's goal was to be more of a crash course on building something with LangGraph, I hope this section goes into more detail into how to use each component of LangGraph. Now that we have something to build off of, let's get to work! 🧑‍🏭
 
 ## Refactoring
+
